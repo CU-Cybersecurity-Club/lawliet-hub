@@ -1,14 +1,25 @@
-FROM ubuntu:18.04
+# To run:
+# docker run -it penlite
 
-RUN apt update
-RUN apt install -y curl gnupg
-RUN apt install -y openssh-server
+FROM kalilinux/kali-linux-docker
 
-RUN service ssh start
-RUN mkdir ~/.ssh
+RUN apt-get update \
+    && apt-get install -y \
+        curl \
+        gnupg
 
+# Delay installation of OpenSSH server for now -- won't be
+# needed unless users are directly SSH'ing into the container,
+# which we don't know is the case yet.
+#RUN apt install -y openssh-server \
+#    && mkdir ~/.ssh
 
-# install metasploit
-RUN curl https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/templates/metasploit-framework-wrappers/msfupdate.erb > msfinstall && \
-  chmod 755 msfinstall && \
-  ./msfinstall
+###
+### Install tools
+###
+
+# Metasploit
+RUN apt-get install -y metasploit-framework
+
+COPY start.sh /
+ENTRYPOINT [ "/start.sh" ]
