@@ -8,11 +8,8 @@ RUN apt-get update \
         curl \
         gnupg
 
-# Delay installation of OpenSSH server for now -- won't be
-# needed unless users are directly SSH'ing into the container,
-# which we don't know is the case yet.
-#RUN apt install -y openssh-server \
-#    && mkdir ~/.ssh
+RUN apt install -y openssh-server \
+    && mkdir ~/.ssh
 
 ###
 ### Install tools
@@ -22,4 +19,4 @@ RUN apt-get update \
 RUN apt-get install -y metasploit-framework
 
 COPY start.sh /
-ENTRYPOINT [ "/start.sh" ]
+# ENTRYPOINT [ "/start.sh", "&&", "/bin/bash", "-c" ]
