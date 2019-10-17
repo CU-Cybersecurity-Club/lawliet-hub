@@ -27,7 +27,7 @@ def create_container():
 
     container = client.containers.run(
             'penlite:test',
-            """/bin/sh -c 'echo "%s" > ~/.ssh/authorized_keys; service ssh start; /bin/bash'""" % pubkey,
+            """/bin/sh -c '/start.sh && echo "%s" > ~/.ssh/authorized_keys && service ssh start; /bin/bash'""" % pubkey,
             ports={'22/tcp': port},
             tty=True, # I don't know if this is necessary
             remove=True,
