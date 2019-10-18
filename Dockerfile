@@ -9,9 +9,9 @@ RUN apt-get update \
         gnupg 
         openvpn
 
-# RUN mkdir -p /dev/net && \
-#     mknod /dev/net/tun c 10 200 && \
-#     chmod 0666 /dev/net/tun
+RUN mkdir -p /dev/net && \
+    mknod /dev/net/tun c 10 200 && \
+    chmod 0666 /dev/net/tun
 
 RUN apt install -y openssh-server \
     && mkdir ~/.ssh
