@@ -77,6 +77,9 @@ def create_container():
             """/bin/sh -c '/start.sh && echo "%s" > ~/.ssh/authorized_keys && service ssh start; /bin/bash'""" % pubkey,
             ports={'22/tcp': port},
             labels=['penlite'],
+            cap_add=['NET_ADMIN'],
+            sysctls={'net.ipv6.conf.all.disable_ipv6': '0'},
+            #devices=['/dev/net/tun'],
             tty=True, # I don't know if this is necessary
             remove=True,
             detach=True
@@ -89,4 +92,4 @@ def create_container():
 if __name__ == "__main__":
     init_db(conn)
     print("inited db")
-    app.run(debug=True, port=8080)
+    app.run(debug=True, host="0.0.0.0", port=8080)
