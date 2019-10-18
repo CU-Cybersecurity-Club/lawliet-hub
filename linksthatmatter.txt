@@ -1,0 +1,19 @@
+why is ipv6 necessary? the htb vpn requires ipv6
+https://forum.hackthebox.eu/discussion/385/fatal-error
+
+to enable ipv6 in the docker daemon AND in the docker container, you need to both edit the daemon config and the sysctls for docker run
+https://docs.docker.com/config/daemon/ipv6/
+https://docs.docker.com/v17.09/engine/userguide/networking/default_network/ipv6/#how-ipv6-works-on-docker
+https://github.com/dperson/openvpn-client/issues/75
+
+running a vpn in docker requires the NET_ADMIN cap
+I think that because it is in bridge mode, there shouldn't (?) be a vuln, though this may require creating networks for every container? DONT RUN IN HOST NETWORK MODE otherwise definitely a vuln
+https://www.reddit.com/r/docker/comments/bog7gy/help_with_error_cannot_open_tuntap_dev_devnettun/
+https://www.reddit.com/r/docker/comments/4cw758/accessing_tuntap_device_inside_of_a_docker/
+
+if the container doesn't have /dev/net/tun
+https://github.com/haugene/docker-transmission-openvpn/issues/538
+https://github.com/haugene/docker-transmission-openvpn/blob/dev/openvpn/start.sh#L8
+  mkdir -p /dev/net
+  mknod /dev/net/tun c 10 200
+  chmod 0666 /dev/net/tun
