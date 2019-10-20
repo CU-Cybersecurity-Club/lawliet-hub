@@ -16,12 +16,13 @@ RUN apt-get update \
         sudo \
         xfce4 \
         xfce4-goodies \
-        openssh-server
-    #&& apt-get purge \
-    #&& apt-get clean \
-    #&& rm -rf /var/lib/apt/lists/*
+        openssh-server \
+        metasploit-framework \
+    && apt-get purge \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-mkdir ~/.ssh
+RUN mkdir ~/.ssh
 
 # Add convenience scripts, and a message to display when the container is run
 RUN mkdir /etc/vnc
@@ -31,7 +32,7 @@ RUN chmod -R a-w /etc/vnc/ \
     && ln -s /etc/vnc/add-vnc-user.sh /usr/bin/add-vnc-user
 
 # Expose VNC ports
-EXPOSE 5900-6000
+# EXPOSE 5900-6000
 
 # Configure VNC
 ENV TERM=xterm-256color
@@ -69,8 +70,6 @@ RUN mkdir -p /dev/net && \
 ### Install tools
 ###
 
-# Metasploit
-RUN apt-get install -y metasploit-framework
 
 COPY start.sh /
-# ENTRYPOINT [ "/start.sh", "&&", "/bin/bash", "-c" ]
+COPY start-vnc.sh /

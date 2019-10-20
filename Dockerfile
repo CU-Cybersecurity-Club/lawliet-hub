@@ -4,21 +4,17 @@ RUN apt-get update \
     && apt-get install -y \
         curl \
         gnupg \
-        openvpn
+        openvpn \
+		openssh-server \
+		metasploit-framework \
+    && apt-get purge \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /dev/net && \
     mknod /dev/net/tun c 10 200 && \
     chmod 0666 /dev/net/tun
 
-RUN apt install -y openssh-server \
-    && mkdir ~/.ssh
-
-###
-### Install tools
-###
-
-# Metasploit
-RUN apt-get install -y metasploit-framework
+RUN mkdir ~/.ssh
 
 COPY start.sh /
-# ENTRYPOINT [ "/start.sh", "&&", "/bin/bash", "-c" ]

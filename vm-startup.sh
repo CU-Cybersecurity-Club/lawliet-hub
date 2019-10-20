@@ -19,7 +19,5 @@ echo '{ "ipv6": true, "fixed-cidr-v6": "2001:db8:1::/64" }' >> /etc/docker/daemo
 systemctl enable docker
 systemctl start docker
 
-# run docker build
-docker build -t penlite:test .
-
-# start server.py (as root!)
+# echo a unique string for the wait to pick up
+echo "VMSTARTUPISNOWDONE"
