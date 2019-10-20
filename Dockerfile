@@ -1,6 +1,3 @@
-# To run:
-# docker run -it penlite
-
 FROM kalilinux/kali-linux-docker
 
 RUN apt-get update \
