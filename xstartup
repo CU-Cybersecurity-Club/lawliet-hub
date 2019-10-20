@@ -1,0 +1,3 @@
+#!/bin/bash
+xrdb $HOME/.Xresources
+sudo startxfce4 &

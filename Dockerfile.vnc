@@ -1,0 +1,76 @@
+# To run:
+# docker run -it penlite
+
+FROM kalilinux/kali-linux-docker
+
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive \
+    apt-get install -y \
+        curl \
+        gnupg \
+        openvpn \
+        tigervnc-standalone-server \
+        tigervnc-xorg-extension \
+        tigervnc-viewer \
+        openssl \
+        sudo \
+        xfce4 \
+        xfce4-goodies \
+        openssh-server
+    #&& apt-get purge \
+    #&& apt-get clean \
+    #&& rm -rf /var/lib/apt/lists/*
+
+mkdir ~/.ssh
+
+# Add convenience scripts, and a message to display when the container is run
+RUN mkdir /etc/vnc
+COPY add-vnc-user.sh /etc/vnc/
+#COPY msg /etc/vnc/
+RUN chmod -R a-w /etc/vnc/ \
+    && ln -s /etc/vnc/add-vnc-user.sh /usr/bin/add-vnc-user
+
+# Expose VNC ports
+EXPOSE 5900-6000
+
+# Configure VNC
+ENV TERM=xterm-256color
+
+COPY xstartup /etc/vnc/
+#COPY msg /etc/vnc/
+
+# Add the VNC_GROUP group, which is the only group of users that is permitted
+# to run vncserver. We give this group special sudo permissions that let them
+# start the desktop.
+ENV VNC_GROUP=vnc
+RUN groupadd ${VNC_GROUP} \
+    && chmod -R a-w /etc/vnc \
+    && find /usr/bin -type f -executable -iname "*vnc*" \
+        | xargs -I {} sh -c \
+            "chown root:${VNC_GROUP} {}; \
+            chmod 750 {};" \
+    && echo "%${VNC_GROUP} ALL = NOPASSWD: $(which startxfce4)" \
+        >> /etc/sudoers \
+    # Add a line to the add-vnc-user script that adds the user to VNC_GROUP
+    && echo "usermod -aG ${VNC_GROUP} \$1" >> /etc/vnc/add-vnc-user.sh
+
+# Change x-terminal-emulator to /usr/bin/xfce4-terminal.wrapper so that we
+# avoid "input/output error" when attempting to open a terminal in a VNC
+# session.
+RUN bash -c "update-alternatives --config x-terminal-emulator <<< 2"
+
+
+
+RUN mkdir -p /dev/net && \
+    mknod /dev/net/tun c 10 200 && \
+    chmod 0666 /dev/net/tun
+
+###
+### Install tools
+###
+
+# Metasploit
+RUN apt-get install -y metasploit-framework
+
+COPY start.sh /
+# ENTRYPOINT [ "/start.sh", "&&", "/bin/bash", "-c" ]
