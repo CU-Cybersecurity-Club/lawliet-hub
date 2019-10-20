@@ -5,6 +5,6 @@ vncserver \
 		-localhost no \
 		-X509Key ${HOME}/.vnc/vnc.key \
 		-X509Cert ${HOME}/.vnc/vnc.cert \
-		-xstartup /etc/vnc/xstartup \
-		-baseHttpPort $1 \
-		-fg
+		-xstartup /etc/vnc/xstartup
+
+/bin/bash
