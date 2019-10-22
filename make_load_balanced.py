@@ -116,18 +116,16 @@ def upload_docker_tar(name):
     #  xstartup
     tar = tarfile.open("docker-server.tar.gz", "w:gz")
 
-    docker_server_dir = "./docker-server/"
     for name in [
-            "docker-server.py",
-            "docker-server.ini",
-            "Dockerfile",
-            "Dockerfile.vnc",
-            "start.sh",
-            "add-vnc-user.sh",
-            "start-vnc.sh",
-            "xstartup"]:
-        name = docker_server_dir + name
-        tar.add(name)
+            "./docker-server/docker-server.py",
+            "./docker-server/docker-server.ini",
+            "./docker/Dockerfile",
+            "./docker/Dockerfile.vnc",
+            "./docker/start.sh",
+            "./docker/add-vnc-user.sh",
+            "./docker/start-vnc.sh",
+            "./docker/xstartup"]:
+        tar.add(name, arcname=name.split("/")[-1])
     tar.close()
     blob = bucket.blob("docker-server.tar.gz")
     blob.upload_from_filename("docker-server.tar.gz")
@@ -141,19 +139,17 @@ def upload_lb_tar(name, docker_ips):
     #  lb-server.py
     #  lb-server.ini (edited right here for the right hosts)
 
-    for line in fileinput.input("lb-server.ini", inplace=True):
+    for line in fileinput.input("./lb-server/lb-server.ini", inplace=True):
         if "DockerServers" in line:
             print("DockerServers = %s" % ",".join(map(lambda x: "%s:8080" % x, docker_ips)))
         else:
             print(line, end="")
 
     tar = tarfile.open("lb-server.tar.gz", "w:gz")
-    lb_server_dir = "./lb-server/"
     for name in [
-            "lb-server.py",
-            "lb-server.ini"]:
-        name = lb_server_dir + name
-        tar.add(name)
+            "./lb-server/lb-server.py",
+            "./lb-server/lb-server.ini"]:
+        tar.add(name, arcname=name.split("/")[-1])
     tar.close()
     blob = bucket.blob("lb-server.tar.gz")
     blob.upload_from_filename("lb-server.tar.gz")
@@ -161,7 +157,6 @@ def upload_lb_tar(name, docker_ips):
 def wait_for_ip(compute, project, zone, name):                                                                                                                                             
     while True:
         result = compute.instances().get(project=project, zone=zone, instance=name).execute()
-        print(result)
         try:
             return result['networkInterfaces'][0]['accessConfigs'][0]['natIP']
         except KeyError as e:
