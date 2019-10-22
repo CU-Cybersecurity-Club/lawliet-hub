@@ -19,5 +19,14 @@ echo '{ "ipv6": true, "fixed-cidr-v6": "2001:db8:1::/64" }' >> /etc/docker/daemo
 systemctl enable docker
 systemctl start docker
 
-# echo a unique string for the wait to pick up
-echo "VMSTARTUPISNOWDONE"
+mkdir /penlite
+cd penlite
+gsutil cp gs://cu-cyber-penlite/docker-server.tar.gz .
+tar -xvf docker-server.tar.gz
+
+docker build -f Dockerfile -t penlite:test . &
+docker build -f Dockerfile.vnc -t penlite:test-vnc . &
+wait
+screen -d -m python3 docker-server.py
+
+

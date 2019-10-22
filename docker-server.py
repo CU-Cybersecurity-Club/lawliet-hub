@@ -4,11 +4,11 @@ import sqlite3
 import datetime
 from dateutil import parser # sub for datetime.strptime for efficiency later
 import pytz
+import configparser
 
 MAX_MEM = "1G"
-SYSTEM_CORES = 4
 CPU_PERIOD=100000  # default
-CPU_QUOTA = int(CPU_PERIOD / SYSTEM_CORES)
+CPU_QUOTA = CPU_PERIOD # defaults to "1 core" per
 MAX_CONTAINERS = 4
 
 
@@ -93,6 +93,7 @@ def pick_port_db(conn, minport=10000, maxport=20000, num_ports=1):
 
 @app.route('/container', methods=["POST"])
 def create_container():
+    print("quota:", CPU_QUOTA)
     if running_container_count() >= MAX_CONTAINERS:
         return "maxed on containers", 503
 
@@ -153,6 +154,15 @@ def create_container():
 
 
 if __name__ == "__main__":
+    config = configparser.ConfigParser()
+    config.read("docker-server.ini")
+    MAX_MEM = config["DEFAULT"]["ContainerMaxMem"]
+    cpus = config["DEFAULT"]["ContainerCPUs"]
+    MAX_CONTAINERS = int(config["DEFAULT"]["MaxContainers"])
+
+    CPU_QUOTA = int(CPU_PERIOD * float(cpus))
+
+
     init_db(conn)
     print("inited db")
     app.run(debug=True, host="0.0.0.0", port=8080)

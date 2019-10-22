@@ -18,7 +18,7 @@ gcloud compute instances create $MACHINENAME \
 		--image-project="ubuntu-os-cloud" \
 		--image-family="ubuntu-1804-lts" \
 		--tags "penlite" \
-		--metadata-from-file startup-script=./vm-startup.sh \
+		--metadata-from-file startup-script=./vm-startup-docker.sh \
 		--zone=us-west1-a
 
 echo "copying dockerfiles and docker-server.py"
@@ -27,6 +27,7 @@ gcloud compute scp \
 		Dockerfile \
 		Dockerfile.vnc \
 		docker-server.py \
+		docker-server.ini \
 		start.sh \
 		add-vnc-user.sh \
 		start-vnc.sh \
