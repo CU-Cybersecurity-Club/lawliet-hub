@@ -21,12 +21,12 @@ gcloud compute instances create $MACHINENAME \
 		--metadata-from-file startup-script=./vm-startup.sh \
 		--zone=us-west1-a
 
-echo "copying dockerfiles and server.py"
+echo "copying dockerfiles and docker-server.py"
 # gcloud compute scp ./$DOCKERSAVE $MACHINENAME:~/
 gcloud compute scp \
 		Dockerfile \
 		Dockerfile.vnc \
-		server.py \
+		docker-server.py \
 		start.sh \
 		add-vnc-user.sh \
 		start-vnc.sh \
@@ -39,7 +39,7 @@ gcloud compute ssh $MACHINENAME --command "sudo tail -n 1000 -f /var/log/syslog 
 echo "running docker build and server in screen session"
 gcloud compute ssh $MACHINENAME --command "screen -d -m sudo docker build -f Dockerfile -t penlite:test ."
 gcloud compute ssh $MACHINENAME --command "screen -d -m sudo docker build -f Dockerfile.vnc -t penlite:test-vnc ."
-gcloud compute ssh $MACHINENAME --command "screen -d -m sudo python3 server.py"
+gcloud compute ssh $MACHINENAME --command "screen -d -m sudo python3 docker-server.py"
 
 # echo "loading docker tar onto remote"
 # gcloud compute ssh $MACHINENAME "docker load -i ~/$DOCKERSAVE"
