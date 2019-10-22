@@ -33,3 +33,10 @@ https://stackoverflow.com/questions/20123823/how-does-docker-use-cpu-cores-from-
   value of --cpu-quota to 25000 limits a container to 25% of 
   the CPU resources. By default, a container can use all available CPU resources, 
   which corresponds to a --cpu-quota value of -1.
+
+Various resources for understanding container and Kubernetes security better -- particularly relevant considering that we're trying to give everyone unfettered access to their own container with all the pentesting tools they could want :)
+
+    https://blog.trailofbits.com/2019/07/19/understanding-docker-container-escapes/
+    https://github.com/IanColdwater/kubernetes-security-best-practice
+    https://www.cyberark.com/threat-research-blog/the-route-to-root-container-escape-using-kernel-exploitation/
+    https://www.cyberark.com/threat-research-blog/how-i-hacked-play-with-docker-and-remotely-ran-code-on-the-host/
