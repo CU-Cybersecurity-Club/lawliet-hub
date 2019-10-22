@@ -5,6 +5,13 @@ import datetime
 from dateutil import parser # sub for datetime.strptime for efficiency later
 import pytz
 
+MAX_MEM = "1G"
+SYSTEM_CORES = 4
+CPU_PERIOD=100000  # default
+CPU_QUOTA = int(CPU_PERIOD / SYSTEM_CORES)
+MAX_CONTAINERS = 4
+
+
 app = Flask(__name__)
 client = docker.from_env()
 
@@ -38,6 +45,14 @@ def kill_old_containers(before_datetime):
         cursor.execute('''DELETE FROM used_ports WHERE port = ?''', (port,))
     conn.commit()
     return
+
+def running_container_count():
+    count = 0
+    for container in client.containers.list():
+        if 'penlite' in container.attrs['Config']['Labels']:
+            count += 1
+
+    return count
 
 def init_db(conn):
     curs = conn.cursor()
@@ -78,8 +93,8 @@ def pick_port_db(conn, minport=10000, maxport=20000, num_ports=1):
 
 @app.route('/container', methods=["POST"])
 def create_container():
-    if request.method != "POST":
-        return "nope"
+    if running_container_count() >= MAX_CONTAINERS:
+        return "maxed on containers", 503
 
     conn = sqlite3.connect("penlite.db")
     curs = conn.cursor()
@@ -103,6 +118,9 @@ def create_container():
                 labels=['penlite'],
                 cap_add=['NET_ADMIN'],
                 sysctls={'net.ipv6.conf.all.disable_ipv6': '0'},
+                cpu_period=CPU_PERIOD,
+                cpu_quota=CPU_QUOTA,
+                mem_limit=MAX_MEM,
                 tty=True, # I don't know if this is necessary
                 remove=True,
                 detach=True
@@ -121,6 +139,9 @@ def create_container():
                 labels=['penlite'],
                 cap_add=['NET_ADMIN'],
                 sysctls={'net.ipv6.conf.all.disable_ipv6': '0'},
+                cpu_period=CPU_PERIOD,
+                cpu_quota=CPU_QUOTA,
+                mem_limit=MAX_MEM,
                 tty=True, # I don't know if this is necessary
                 remove=True,
                 detach=True

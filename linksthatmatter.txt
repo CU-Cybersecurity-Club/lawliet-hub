@@ -17,3 +17,19 @@ https://github.com/haugene/docker-transmission-openvpn/blob/dev/openvpn/start.sh
   mkdir -p /dev/net
   mknod /dev/net/tun c 10 200
   chmod 0666 /dev/net/tun
+
+
+
+https://stackoverflow.com/questions/20123823/how-does-docker-use-cpu-cores-from-its-host-operating-system
+
+  To control a container's CPU usage, you can use the
+  --cpu-period  and --cpu-quota options with the docker 
+  create and docker run commands  from version 1.7.0 of Docker onward.
+
+  The --cpu-quota option specifies the number of microseconds 
+  that a container has access to CPU resources during a 
+  period specified by --cpu-period.
+  As the default value of --cpu-period is 100000, setting the 
+  value of --cpu-quota to 25000 limits a container to 25% of 
+  the CPU resources. By default, a container can use all available CPU resources, 
+  which corresponds to a --cpu-quota value of -1.
