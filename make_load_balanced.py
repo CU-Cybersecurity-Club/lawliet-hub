@@ -22,12 +22,12 @@ def create_instance(compute, project, zone, name, is_docker=True, is_lb=False):
         machine_type = "zones/%s/machineTypes/n1-standard-1" % zone
         startup_script = open(
             os.path.join(
-                os.path.dirname(__file__), 'vm-startup-docker.sh'), 'r').read()
+                os.path.dirname(__file__), 'docker-server/vm-startup-docker.sh'), 'r').read()
     elif is_lb:
         machine_type = "zones/%s/machineTypes/f1-micro" % zone
         startup_script = open(
             os.path.join(
-                os.path.dirname(__file__), 'vm-startup-lb.sh'), 'r').read()
+                os.path.dirname(__file__), 'lb-server/vm-startup-lb.sh'), 'r').read()
 
     config = {
         'name': name,
@@ -115,6 +115,8 @@ def upload_docker_tar(name):
     #  start-vnc.sh
     #  xstartup
     tar = tarfile.open("docker-server.tar.gz", "w:gz")
+
+    docker_server_dir = "./docker-server/"
     for name in [
             "docker-server.py",
             "docker-server.ini",
@@ -124,6 +126,7 @@ def upload_docker_tar(name):
             "add-vnc-user.sh",
             "start-vnc.sh",
             "xstartup"]:
+        name = docker_server_dir + name
         tar.add(name)
     tar.close()
     blob = bucket.blob("docker-server.tar.gz")
@@ -145,9 +148,11 @@ def upload_lb_tar(name, docker_ips):
             print(line, end="")
 
     tar = tarfile.open("lb-server.tar.gz", "w:gz")
+    lb_server_dir = "./lb-server/"
     for name in [
             "lb-server.py",
             "lb-server.ini"]:
+        name = lb_server_dir + name
         tar.add(name)
     tar.close()
     blob = bucket.blob("lb-server.tar.gz")
