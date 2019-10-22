@@ -140,7 +140,7 @@ def upload_lb_tar(name, docker_ips):
 
     for line in fileinput.input("lb-server.ini", inplace=True):
         if "DockerServers" in line:
-            print("DockerServers: %s" % ",".join(map(lambda x: "%s:8080" % x, docker_ips)), end="")
+            print("DockerServers = %s" % ",".join(map(lambda x: "%s:8080" % x, docker_ips)))
         else:
             print(line, end="")
 
