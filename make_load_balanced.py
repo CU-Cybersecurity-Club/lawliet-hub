@@ -22,12 +22,12 @@ def create_instance(compute, project, zone, name, is_docker=True, is_lb=False):
         machine_type = "zones/%s/machineTypes/n1-standard-1" % zone
         startup_script = open(
             os.path.join(
-                os.path.dirname(__file__), 'vm-startup-docker.sh'), 'r').read()
+                os.path.dirname(__file__), 'docker-server/vm-startup-docker.sh'), 'r').read()
     elif is_lb:
         machine_type = "zones/%s/machineTypes/f1-micro" % zone
         startup_script = open(
             os.path.join(
-                os.path.dirname(__file__), 'vm-startup-lb.sh'), 'r').read()
+                os.path.dirname(__file__), 'lb-server/vm-startup-lb.sh'), 'r').read()
 
     config = {
         'name': name,
@@ -115,16 +115,17 @@ def upload_docker_tar(name):
     #  start-vnc.sh
     #  xstartup
     tar = tarfile.open("docker-server.tar.gz", "w:gz")
+
     for name in [
-            "docker-server.py",
-            "docker-server.ini",
-            "Dockerfile",
-            "Dockerfile.vnc",
-            "start.sh",
-            "add-vnc-user.sh",
-            "start-vnc.sh",
-            "xstartup"]:
-        tar.add(name)
+            "./docker-server/docker-server.py",
+            "./docker-server/docker-server.ini",
+            "./docker/Dockerfile",
+            "./docker/Dockerfile.vnc",
+            "./docker/start.sh",
+            "./docker/add-vnc-user.sh",
+            "./docker/start-vnc.sh",
+            "./docker/xstartup"]:
+        tar.add(name, arcname=name.split("/")[-1])
     tar.close()
     blob = bucket.blob("docker-server.tar.gz")
     blob.upload_from_filename("docker-server.tar.gz")
@@ -138,7 +139,7 @@ def upload_lb_tar(name, docker_ips):
     #  lb-server.py
     #  lb-server.ini (edited right here for the right hosts)
 
-    for line in fileinput.input("lb-server.ini", inplace=True):
+    for line in fileinput.input("./lb-server/lb-server.ini", inplace=True):
         if "DockerServers" in line:
             print("DockerServers = %s" % ",".join(map(lambda x: "%s:8080" % x, docker_ips)))
         else:
@@ -146,9 +147,9 @@ def upload_lb_tar(name, docker_ips):
 
     tar = tarfile.open("lb-server.tar.gz", "w:gz")
     for name in [
-            "lb-server.py",
-            "lb-server.ini"]:
-        tar.add(name)
+            "./lb-server/lb-server.py",
+            "./lb-server/lb-server.ini"]:
+        tar.add(name, arcname=name.split("/")[-1])
     tar.close()
     blob = bucket.blob("lb-server.tar.gz")
     blob.upload_from_filename("lb-server.tar.gz")
@@ -156,7 +157,6 @@ def upload_lb_tar(name, docker_ips):
 def wait_for_ip(compute, project, zone, name):                                                                                                                                             
     while True:
         result = compute.instances().get(project=project, zone=zone, instance=name).execute()
-        print(result)
         try:
             return result['networkInterfaces'][0]['accessConfigs'][0]['natIP']
         except KeyError as e:

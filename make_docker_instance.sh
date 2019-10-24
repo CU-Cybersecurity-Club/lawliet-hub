@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "this is for legacy purposes only, most paths will not work"
+exit 1
+
 set -e
 
 MACHINENAME=penlite-test-8
