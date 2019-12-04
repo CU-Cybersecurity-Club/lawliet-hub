@@ -2,9 +2,17 @@ from flask import Flask, request, jsonify
 import requests
 from kubernetes import client, config
 from pprint import pprint
+import logging
 
 app = Flask(__name__)
-config.load_kube_config()
+logging.basicConfig(level=logging.DEBUG)
+
+# for local testing with kubectl set up for the cluster
+#config.load_kube_config()
+#v1 = client.CoreV1Api()
+
+# for the pod
+config.load_incluster_config()
 v1 = client.CoreV1Api()
 
 def get_pod_name(name):
@@ -27,34 +35,39 @@ def get_pod_spec(name, container="penlite:test-vnc"):
             ports=ports,
             security_context=client.V1SecurityContext(capabilities=client.V1Capabilities(add=["NET_ADMIN"]))
             )
-    pod.spec = client.V1PodSpec(containers=[container])
+    pod.spec = client.V1PodSpec(
+            containers=[container])
     return pod
 
 def create_pod(name):
+    logging.debug("creating:", name)
     namespace = "default"
     body = get_pod_spec(name)
     pretty = "true"
     try:
         api_response = v1.create_namespaced_pod(namespace, body, pretty=pretty)
-        pprint(api_response)
+        logging.debug("response for create %s: %s" % (name, api_response))
+        #pprint(api_response)
         return jsonify({
             "pod_name": get_pod_name(name)
             })
     except client.rest.ApiException as e:
-        print("Exception when calling CoreV1Api->create_namespaced_pod: %s\n" % e)
+        logging.error("Exception when calling CoreV1Api->create_namespaced_pod: %s\n" % e)
         return "failed to create pod", 500
 
 def delete_pod(name):
+    logging.debug("deleting:", name)
     namespace = "default"
     pod_name = get_pod_name(name)
     pretty = "true"
     try:
         api_response = v1.delete_namespaced_pod(pod_name, namespace, pretty=pretty)
         pprint(api_response)
+        logging.debug("response for delete %s: %s" % (name, api_response))
         return "", 200
     except client.rest.ApiException as e:
-        print("Exception when calling CoreV1Api->create_namespaced_pod: %s\n" % e)
-        return 500
+        logging.error("Exception when calling CoreV1Api->create_namespaced_pod: %s\n" % e)
+        return "failed to delete pod", 500
 
 @app.route('/container/<id>', methods=["PUT", "DELETE"])
 def container(id):
@@ -64,4 +77,5 @@ def container(id):
         return delete_pod(id)
 
 if __name__ == "__main__":
+    print("starting server")
     app.run(debug=True, host="0.0.0.0", port=8081)

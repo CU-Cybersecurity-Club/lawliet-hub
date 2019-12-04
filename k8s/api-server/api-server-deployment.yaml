@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: penlite-k8s-api-server
+  labels:
+    app: penlite-k8s-api-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: penlite-k8s-api-server
+  template:
+    metadata:
+      labels:
+        app: penlite-k8s-api-server
+    spec:
+      serviceAccountName: "penlite-k8s-api-server"
+      containers:
+      - name: penlite-k8s-api-server
+        image: gcr.io/csci5253-datacenter/penlite-k8s-api-server:latest
+        ports:
+        - containerPort: 8081
