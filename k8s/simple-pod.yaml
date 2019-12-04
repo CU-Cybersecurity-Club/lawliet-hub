@@ -19,10 +19,5 @@ spec:
     - containerPort: 5900
     - containerPort: 5901
     securityContext:
-      privileged: true
       capabilities:
         add: ["NET_ADMIN"]
-  securityContext:
-    sysctls:
-    - name: net.ipv6.conf.all.disable_ipv6
-      value: "0"
