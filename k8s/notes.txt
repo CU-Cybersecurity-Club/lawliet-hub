@@ -1,0 +1,30 @@
+/home/kubernetes/kubelet-config.yaml
+
+allowedUnsafeSysctls:
+- net.ipv6.conf.all.disable_ipv6
+
+
+
+IGNORE ABOVE, USE BELOW
+https://kubernetes.io/docs/tasks/administer-cluster/sysctl-cluster/#enabling-unsafe-sysctls
+
+/etc/systemd/system/kubelet.service
+CHANGE
+ExecStart=/home/kubernetes/bin/kubelet $KUBELET_OPTS
+TO
+ExecStart=/home/kubernetes/bin/kubelet --allowed-unsafe-sysctls 'net.ipv6.conf.all.disable_ipv6' $KUBELET_OPTS
+THEN
+systemctl daemon-reload
+systemctl restart kubelet
+
+
+
+
+
+gcloud compute instances list --filter="name~'gke.*pool'"
+
+sudo sed -i '/ExecStart/c\ExecStart=/home/kubernetes/bin/kubelet --allowed-unsafe-sysctls net.ipv6.conf.all.disable_ipv6 $KUBELET_OPTS' /etc/systemd/system/kubelet.service
+
+gcloud compute ssh gke-mykube-default-pool-306f4eaa-h441 --command='sudo sed -i "/ExecStart/c\ExecStart=/home/kubernetes/bin/kubelet --allowed-unsafe-sysctls net.ipv6.conf.all.disable_ipv6 $KUBELET_OPTS" /etc/systemd/system/kubelet.service && sudo systemctl daemon-reload && sudo systemctl restart kubelet'
+
+gcloud compute instances list --filter="name~'gke.*pool'" --format="value(name)"

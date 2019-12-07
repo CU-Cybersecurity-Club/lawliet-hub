@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: penlite-michael
+  labels:
+    app: penlite
+    app-specific: penlite-michael
+spec:
+  containers:
+  - name: penlite-michael-test-vnc
+    image: gcr.io/csci5253-datacenter/penlite:test-vnc
+    command: ["/bin/bash"]
+    args: ["-c", "add-vnc-user root pass && /start.sh && echo 'test' > ~/.ssh/authorized_keys && service ssh start; /start-vnc.sh; tail -f /dev/null"]
+    #args: ["-c", "add-vnc-user root pass && /start.sh && echo 'test' > ~/.ssh/authorized_keys && service ssh start; /start-vnc.sh; echo 0 > /proc/sys/net/ipv6/conf/all/disable_ipv6; tail -f /dev/null"]
+    #args: ["/bin/sh -c 'ls /; add-vnc-user root pass && /start.sh && && mkdir ~/.ssh && echo testkey > ~/.ssh/authorized_keys && service ssh start; /start-vnc.sh'"]
+    #args: ["/bin/sh -c '/start.sh && echo testkey > ~/.ssh/authorized_keys && service ssh start'"]
+    ports:
+    - containerPort: 22
+    - containerPort: 5900
+    - containerPort: 5901
+    securityContext:
+      capabilities:
+        add: ["NET_ADMIN"]
