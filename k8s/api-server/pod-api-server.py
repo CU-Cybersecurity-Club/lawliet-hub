@@ -7,7 +7,7 @@ import logging
 app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
-# for local testing with kubectl set up for the cluster
+# for local testing with LOCAL kubectl set up for the cluster
 #config.load_kube_config()
 #v1 = client.CoreV1Api()
 
@@ -16,7 +16,7 @@ config.load_incluster_config()
 v1 = client.CoreV1Api()
 
 def get_pod_name(name):
-    return "penlite-%s" % name
+    return "penlite-env-%s" % name
 
 def get_pod_spec(name, container="penlite:test-vnc"):
     pod = client.V1Pod()
@@ -39,6 +39,23 @@ def get_pod_spec(name, container="penlite:test-vnc"):
             containers=[container])
     return pod
 
+def get_svc_spec(name):
+    pod_name = get_pod_name(name)
+    svc = client.V1Service()
+
+    labels = {"app": "penlite", "app-specific": pod_name}
+    svc.metadata = client.V1ObjectMeta(name=pod_name, labels=labels)
+
+    svc.spec = client.V1ServiceSpec(
+            ports=[
+                {"port": 22, "targetPort": 22, "protocol": "TCP"},
+                {"port": 5900, "targetPort": 5900, "protocol": "TCP"},
+                {"port": 5901, "targetPort": 5901, "protocol": "TCP"}
+                ],
+            selector={"app-specific": pod_name})
+
+    return svc
+
 def create_pod(name):
     logging.debug("creating:", name)
     namespace = "default"
@@ -46,8 +63,9 @@ def create_pod(name):
     pretty = "true"
     try:
         api_response = v1.create_namespaced_pod(namespace, body, pretty=pretty)
-        logging.debug("response for create %s: %s" % (name, api_response))
-        #pprint(api_response)
+        logging.debug("response for create pod %s: %s" % (name, api_response))
+        api_response = v1.create_namespaced_service(namespace, get_svc_spec(name), pretty=pretty)
+        logging.debug("response for create svc %s: %s" % (name, api_response))
         return jsonify({
             "pod_name": get_pod_name(name)
             })
@@ -62,8 +80,9 @@ def delete_pod(name):
     pretty = "true"
     try:
         api_response = v1.delete_namespaced_pod(pod_name, namespace, pretty=pretty)
-        pprint(api_response)
-        logging.debug("response for delete %s: %s" % (name, api_response))
+        logging.debug("response for delete pod %s: %s" % (name, api_response))
+        api_response = v1.delete_namespaced_service(pod_name, namespace, pretty=pretty)
+        logging.debug("response for delete svc %s: %s" % (name, api_response))
         return "", 200
     except client.rest.ApiException as e:
         logging.error("Exception when calling CoreV1Api->create_namespaced_pod: %s\n" % e)
