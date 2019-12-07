@@ -18,10 +18,10 @@ v1 = client.CoreV1Api()
 def get_pod_name(name):
     return "penlite-env-%s" % name
 
-def get_pod_spec(name, container="penlite:test-vnc"):
+def get_pod_spec(name, ssh_key="", container="penlite:test-vnc"):
     pod = client.V1Pod()
     pod.api_version = "v1"
-    labels = {"app": "penlite", "app-specific": get_pod_name(name)}
+    labels = {"app": "penlite-env", "app-specific": get_pod_name(name)}
     pod.metadata = client.V1ObjectMeta(name=get_pod_name(name), labels=labels)
     ports = [
             client.V1ContainerPort(container_port=22),
@@ -31,7 +31,7 @@ def get_pod_spec(name, container="penlite:test-vnc"):
             name=get_pod_name(name),
             image="gcr.io/csci5253-datacenter/%s" % container,
             command=["/bin/bash"],
-            args=["-c", "add-vnc-user root pass && /start.sh && echo 'test' > ~/.ssh/authorized_keys && service ssh start; /start-vnc.sh; tail -f /dev/null"],
+            args=["-c", "add-vnc-user root pass && /start.sh && echo '%s' > ~/.ssh/authorized_keys && service ssh start; /start-vnc.sh; tail -f /dev/null" % ssh_key],
             ports=ports,
             security_context=client.V1SecurityContext(capabilities=client.V1Capabilities(add=["NET_ADMIN"]))
             )
@@ -43,23 +43,23 @@ def get_svc_spec(name):
     pod_name = get_pod_name(name)
     svc = client.V1Service()
 
-    labels = {"app": "penlite", "app-specific": pod_name}
+    labels = {"app": "penlite-env", "app-specific": pod_name}
     svc.metadata = client.V1ObjectMeta(name=pod_name, labels=labels)
 
     svc.spec = client.V1ServiceSpec(
             ports=[
-                {"port": 22, "targetPort": 22, "protocol": "TCP"},
-                {"port": 5900, "targetPort": 5900, "protocol": "TCP"},
-                {"port": 5901, "targetPort": 5901, "protocol": "TCP"}
+                {"name": "ssh", "port": 22, "targetPort": 22, "protocol": "TCP"},
+                {"name": "tigervnc-base", "port": 5900, "targetPort": 5900, "protocol": "TCP"},
+                {"name": "tigervnc-screen-1", "port": 5901, "targetPort": 5901, "protocol": "TCP"}
                 ],
             selector={"app-specific": pod_name})
 
     return svc
 
-def create_pod(name):
+def create_pod(name, ssh_key=""):
     logging.debug("creating:", name)
     namespace = "default"
-    body = get_pod_spec(name)
+    body = get_pod_spec(name, ssh_key=ssh_key)
     pretty = "true"
     try:
         api_response = v1.create_namespaced_pod(namespace, body, pretty=pretty)
@@ -91,7 +91,7 @@ def delete_pod(name):
 @app.route('/container/<id>', methods=["PUT", "DELETE"])
 def container(id):
     if request.method == "PUT":
-        return create_pod(id)
+        return create_pod(id, ssh_key=request.form.get("ssh_key", default=""))
     elif request.method == "DELETE":
         return delete_pod(id)
 
