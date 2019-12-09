@@ -17,6 +17,7 @@ spec:
       serviceAccountName: "penlite-k8s-api-server"
       containers:
       - name: penlite-k8s-api-server
-        image: gcr.io/csci5253-datacenter/penlite-k8s-api-server:latest
+        image: michaelmdresser/penlite:k8s-api-server-latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8081

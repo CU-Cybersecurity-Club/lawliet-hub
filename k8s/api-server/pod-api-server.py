@@ -22,7 +22,7 @@ v1 = client.CoreV1Api()
 def get_pod_name(name):
     return "penlite-env-%s" % name
 
-def get_pod_spec(name, ssh_key="", container="penlite:test-vnc"):
+def get_pod_spec(name, ssh_key="", container="michaelmdresser/penlite:vnc-latest"):
     pod = client.V1Pod()
     pod.api_version = "v1"
     labels = {"app": "penlite-env", "app-specific": get_pod_name(name)}
@@ -33,14 +33,22 @@ def get_pod_spec(name, ssh_key="", container="penlite:test-vnc"):
             client.V1ContainerPort(container_port=5901)]
     container = client.V1Container(
             name=get_pod_name(name),
-            image="gcr.io/csci5253-datacenter/%s" % container,
+            image=container,
+            image_pull_policy="Always",
             command=["/bin/bash"],
-            args=["-c", "add-vnc-user root pass && /start.sh && echo '%s' > ~/.ssh/authorized_keys && service ssh start; /start-vnc.sh; tail -f /dev/null" % ssh_key],
+            args=["-c", "add-vnc-user root pass && /start.sh && echo '%s' > ~/.ssh/authorized_keys && service ssh start && mkdir -p /dev/net && mknod /dev/net/tun c 10 200 && chmod 0666 /dev/net/tun && /start-vnc.sh && tail -f /dev/null" % ssh_key],
             ports=ports,
-            security_context=client.V1SecurityContext(capabilities=client.V1Capabilities(add=["NET_ADMIN"]))
+            security_context=client.V1SecurityContext(
+                capabilities=client.V1Capabilities(add=["NET_ADMIN"]))
             )
+
+    context = client.V1PodSecurityContext(sysctls=[
+        client.V1Sysctl(name="net.ipv6.conf.all.disable_ipv6", value="0")])
+    logging.debug("made context")
+
     pod.spec = client.V1PodSpec(
-            containers=[container])
+            containers=[container],
+            security_context=context)
     return pod
 
 def get_svc_spec(name):
