@@ -52,7 +52,16 @@ cd k8s
 
 ### API Server
 Create a debug container with
+
 ```
 kubectl run debug -it --rm --restart=Never --image alpine -- sh
 ```
-Then you can `apk add curl` and start hitting the API server. See example requests in `k8s/api-server/examplerequest.txt`
+
+Within the container, run
+
+```
+# apk add curl openssh-client
+# ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa
+```
+
+Then you can try running the example requests in `k8s/api-server/examplerequest.txt`
