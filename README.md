@@ -13,7 +13,7 @@ and accessing them.
 The regular container is the current kali image with metasploit and ssh added on top. The one tricky bit is making `/dev/net/tun`, which is necessary for OpenVPN to work successfully. If this was a one-off container we could just add the host's `/dev/net/tun` or just run the container in `privileged` mode, but those obviously aren't good ideas on a "multi-tenant" system like this.
 
 ##### Regular + VNC
-This is the regular container with a vnc server (tigervnc + xxfce) added on top. Most of the extra work in the Dockerfile is setting up the vnc server, gratefully stolen from [wshand/dockerfiles](https://github.com/wshand/dockerfiles).
+This is the regular container with a vnc server (tigervnc + xxfce) added on top. Most of the extra work in the Dockerfile is setting up the vnc server, gratefully stolen from [kernelmethod/dockerfiles](https://github.com/kernelmethod/dockerfiles).
 
 ### Website
 This is the main interface for all of our users. This is where they can sign up, manage credentials, launch environments, get access to environments, and close environments. It is exposed as a service internal to the cluster.
@@ -53,6 +53,6 @@ cd k8s
 ### API Server
 Create a debug container with
 ```
-k run debug -it --rm --restart=Never --image alpine -- sh
+kubectl run debug -it --rm --restart=Never --image alpine -- sh
 ```
 Then you can `apk add curl` and start hitting the API server. See example requests in `k8s/api-server/examplerequest.txt`
