@@ -16,7 +16,6 @@ fi
 
 export VNC_USER=$1
 export VNC_USER_HOME=$(eval echo ~$VNC_USER)
-export VNC_USER_DEFAULT_GROUP=$(sudo -u $VNC_USER id -gn)
 
 echo "Configuring VNC for ${VNC_USER}..."
 
