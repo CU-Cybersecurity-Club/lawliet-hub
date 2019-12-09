@@ -26,3 +26,33 @@ This is a standard proxy, redirecting primary web traffic to the website and all
 
 ### Diagram
 ![Architecture Diagram](k8s-architecture-v1.png)
+
+## Setting up an Environment
+
+### Local
+```
+minikube start --cpus=4 --memory='4000mb'
+# ONLY IF YOU NEED TO UPDATE THE IMAGES
+# ./build_and_upload_images.sh
+cd k8s
+./full_deploy_minikube.sh
+```
+
+### GCP
+Create a GKE cluster, then:
+
+```
+# ONLY IF YOU NEED TO UPDATE THE IMAGES
+# ./build_and_upload_images.sh
+cd k8s
+./full_deploy.sh
+```
+
+## Testing
+
+### API Server
+Create a debug container with
+```
+k run debug -it --rm --restart=Never --image alpine -- sh
+```
+Then you can `apk add curl` and start hitting the API server. See example requests in `k8s/api-server/examplerequest.txt`
