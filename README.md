@@ -25,7 +25,7 @@ This is a wrapper around several calls to the Kubernetes API to provide an easy 
 This is a standard proxy, redirecting primary web traffic to the website and all user sessions (such as SSH and VNC traffic) to the respective user environments. It is exposed as a service external to the cluster.
 
 ### Diagram
-![Architecture Diagram](k8s-architecture-v1.png)
+![Architecture Diagram](k8s-architecture-v2.png)
 
 ## Setting up an Environment
 
