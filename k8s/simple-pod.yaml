@@ -16,8 +16,7 @@ spec:
     #args: ["/bin/sh -c '/start.sh && echo testkey > ~/.ssh/authorized_keys && service ssh start'"]
     ports:
     - containerPort: 22
-    - containerPort: 5900
-    - containerPort: 5901
+    - containerPort: 6080
     securityContext:
       capabilities:
         add: ["NET_ADMIN"]

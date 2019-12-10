@@ -26,7 +26,4 @@ fi
 
 /usr/share/noVNC/utils/launch.sh \
     --web /usr/share/noVNC \
-    --cert ${HOME}/.vnc/vnc.cert \
-    --key ${HOME}/.vnc/vnc.key \
-    --ssl-only \
     --vnc $1

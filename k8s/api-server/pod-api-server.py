@@ -29,8 +29,7 @@ def get_pod_spec(name, ssh_key="", container="michaelmdresser/penlite:vnc-latest
     pod.metadata = client.V1ObjectMeta(name=get_pod_name(name), labels=labels)
     ports = [
             client.V1ContainerPort(container_port=22),
-            client.V1ContainerPort(container_port=5900),
-            client.V1ContainerPort(container_port=5901)]
+            client.V1ContainerPort(container_port=6080)]
     container = client.V1Container(
             name=get_pod_name(name),
             image=container,
@@ -61,8 +60,7 @@ def get_svc_spec(name):
     svc.spec = client.V1ServiceSpec(
             ports=[
                 {"name": "ssh", "port": 22, "targetPort": 22, "protocol": "TCP"},
-                {"name": "tigervnc-base", "port": 5900, "targetPort": 5900, "protocol": "TCP"},
-                {"name": "tigervnc-screen-1", "port": 5901, "targetPort": 5901, "protocol": "TCP"}
+                {"name": "tigervnc-screen-1", "port": 6080, "targetPort": 6080, "protocol": "TCP"}
                 ],
             selector={"app-specific": pod_name})
 

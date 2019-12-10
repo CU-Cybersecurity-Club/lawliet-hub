@@ -49,11 +49,6 @@ RUN ln -s \
         $(which python3) \
         $(dirname $(which python3))/python
 
-ADD vnc/ /etc/vnc
-ADD x11/ /etc/x11
-ADD bin/ /usr/bin
-COPY vnc.conf /etc/vnc.conf
-
 # Add pentesting packages
 RUN apt-get update \
     && apt-get install -y \
@@ -71,6 +66,11 @@ RUN mkdir ~/.ssh \
 
 # Configure VNC
 ENV TERM=xterm-256color
+
+ADD vnc/ /etc/vnc
+ADD x11/ /etc/x11
+ADD bin/ /usr/bin
+COPY vnc.conf /etc/vnc.conf
 
 # Change x-terminal-emulator to /usr/bin/xfce4-terminal.wrapper so that we
 # avoid "input/output error" when attempting to open a terminal in a VNC
