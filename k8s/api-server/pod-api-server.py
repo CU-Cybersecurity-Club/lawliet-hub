@@ -58,6 +58,7 @@ def get_svc_spec(name):
     svc.metadata = client.V1ObjectMeta(name=pod_name, labels=labels)
 
     svc.spec = client.V1ServiceSpec(
+            type="NodePort",
             ports=[
                 {"name": "ssh", "port": 22, "targetPort": 22, "protocol": "TCP"},
                 {"name": "tigervnc-screen-1", "port": 6080, "targetPort": 6080, "protocol": "TCP"}
