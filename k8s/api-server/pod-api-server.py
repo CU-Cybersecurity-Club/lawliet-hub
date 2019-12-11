@@ -35,7 +35,7 @@ def get_pod_spec(name, ssh_key="", container="michaelmdresser/penlite:vnc-latest
             image=container,
             image_pull_policy="Always",
             command=["/bin/bash"],
-            args=["-c", "add-vnc-user root pass && /start.sh && echo '%s' > ~/.ssh/authorized_keys && service ssh start && mkdir -p /dev/net && mknod /dev/net/tun c 10 200 && chmod 0666 /dev/net/tun && /start-vnc.sh && tail -f /dev/null" % ssh_key],
+            args=["-c", "echo '%s' > ~/.ssh/authorized_keys && service ssh start; mkdir -p /dev/net && mknod /dev/net/tun c 10 200 && chmod 0666 /dev/net/tun; /start.sh" % ssh_key],
             ports=ports,
             security_context=client.V1SecurityContext(
                 capabilities=client.V1Capabilities(add=["NET_ADMIN"]))
@@ -58,6 +58,7 @@ def get_svc_spec(name):
     svc.metadata = client.V1ObjectMeta(name=pod_name, labels=labels)
 
     svc.spec = client.V1ServiceSpec(
+            type="NodePort",
             ports=[
                 {"name": "ssh", "port": 22, "targetPort": 22, "protocol": "TCP"},
                 {"name": "tigervnc-screen-1", "port": 6080, "targetPort": 6080, "protocol": "TCP"}
