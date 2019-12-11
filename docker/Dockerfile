@@ -26,11 +26,12 @@ RUN apt-get update \
 #
 # Only keep the files we need from the git repository
     && mkdir -p /usr/share/noVNC \
-    && mv /tmp/noVNC/vnc.html /usr/share/noVNC \
-    && mv /tmp/noVNC/app      /usr/share/noVNC \
-    && mv /tmp/noVNC/core     /usr/share/noVNC \
-    && mv /tmp/noVNC/utils    /usr/share/noVNC \
-    && mv /tmp/noVNC/vendor   /usr/share/noVNC \
+    && mv /tmp/noVNC/vnc.html       /usr/share/noVNC \
+    && mv /tmp/noVNC/app            /usr/share/noVNC \
+    && mv /tmp/noVNC/core           /usr/share/noVNC \
+    && mv /tmp/noVNC/utils          /usr/share/noVNC \
+    && mv /tmp/noVNC/vendor         /usr/share/noVNC \
+    && mv /tmp/noVNC/package.json   /usr/share/noVNC \
     && git clone \
         --depth 1 \
         https://github.com/novnc/websockify.git \
@@ -71,6 +72,10 @@ ADD vnc/ /etc/vnc
 ADD x11/ /etc/x11
 ADD bin/ /usr/bin
 COPY vnc.conf /etc/vnc.conf
+
+COPY reconfigure_novnc.sh /tmp
+RUN /tmp/reconfigure_novnc.sh /usr/share/noVNC \
+    && rm /tmp/reconfigure_novnc.sh
 
 # Change x-terminal-emulator to /usr/bin/xfce4-terminal.wrapper so that we
 # avoid "input/output error" when attempting to open a terminal in a VNC

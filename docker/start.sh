@@ -13,5 +13,6 @@ msfdb init > /dev/null 2>&1
 
 # Start VNC server
 add-vnc-user root toor
-vncserver
+vncserver \
+    -SecurityTypes None
 start-novnc localhost:5901
