@@ -1,5 +1,5 @@
 all requests performed INSIDE the cluster
 
-curl -XPUT penlite-k8s-api-server/container/testssh2 --data-urlencode "ssh_key=$(cat /root/.ssh/id_rsa.pub)"
-curl -XDELETE penlite-k8s-api-server/container/testssh2
-curl -XPOST penlite-k8s-api-server/container/cleanup --data-urlencode "minutes_alive=720"
+curl -XPUT lawliet-k8s-api-server/container/testssh2 --data-urlencode "ssh_key=$(cat /root/.ssh/id_rsa.pub)"
+curl -XDELETE lawliet-k8s-api-server/container/testssh2
+curl -XPOST lawliet-k8s-api-server/container/cleanup --data-urlencode "minutes_alive=720"

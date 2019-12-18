@@ -63,7 +63,7 @@ def create_instance(compute, project, zone, name, is_docker=True, is_lb=False):
         #     ]
         # }],
 
-        'tags': { 'items': ['penlite'] },
+        'tags': { 'items': ['lawliet'] },
 
         # Metadata is readable from the instance and allows you to
         # pass configuration from deployment scripts to instances.
@@ -169,9 +169,9 @@ if __name__ == "__main__":
     service = googleapiclient.discovery.build('compute', 'v1', credentials=credentials)
     zone = "us-west1-b"
 
-    bucket_name = "cu-cyber-penlite"
-    lb_host = "penlite-lb-0"
-    docker_host_pattern = "penlite-docker-0-%s"
+    bucket_name = "cu-cyber-lawliet"
+    lb_host = "lawliet-lb-0"
+    docker_host_pattern = "lawliet-docker-0-%s"
     docker_host_count = 1
     docker_hosts = [docker_host_pattern % i for i in range(docker_host_count)]
 

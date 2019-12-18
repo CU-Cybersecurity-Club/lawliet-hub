@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: penlite-k8s-api-server
+  name: lawliet-k8s-api-server
   labels:
-    app: penlite-k8s-api-server
+    app: lawliet-k8s-api-server
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: penlite-k8s-api-server
+      app: lawliet-k8s-api-server
   template:
     metadata:
       labels:
-        app: penlite-k8s-api-server
+        app: lawliet-k8s-api-server
     spec:
-      serviceAccountName: "penlite-k8s-api-server"
+      serviceAccountName: "lawliet-k8s-api-server"
       containers:
-      - name: penlite-k8s-api-server
-        image: michaelmdresser/penlite:k8s-api-server-latest
+      - name: lawliet-k8s-api-server
+        image: michaelmdresser/lawliet:k8s-api-server-latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8081

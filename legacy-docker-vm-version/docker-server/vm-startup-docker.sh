@@ -19,13 +19,13 @@ echo '{ "ipv6": true, "fixed-cidr-v6": "2001:db8:1::/64" }' >> /etc/docker/daemo
 systemctl enable docker
 systemctl start docker
 
-mkdir /penlite
-cd penlite
-gsutil cp gs://cu-cyber-penlite/docker-server.tar.gz .
+mkdir /lawliet
+cd lawliet
+gsutil cp gs://cu-cyber-lawliet/docker-server.tar.gz .
 tar -xvf docker-server.tar.gz
 
-docker build -f Dockerfile -t penlite:test . &
-docker build -f Dockerfile.vnc -t penlite:test-vnc . &
+docker build -f Dockerfile -t lawliet:test . &
+docker build -f Dockerfile.vnc -t lawliet:test-vnc . &
 wait
 screen -d -m python3 docker-server.py
 

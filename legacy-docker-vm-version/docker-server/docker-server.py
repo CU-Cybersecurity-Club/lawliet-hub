@@ -15,7 +15,7 @@ MAX_CONTAINERS = 4
 app = Flask(__name__)
 client = docker.from_env()
 
-conn = sqlite3.connect("penlite.db")
+conn = sqlite3.connect("lawliet.db")
 
 last_cleanup = None
 
@@ -27,7 +27,7 @@ def kill_old_containers(before_datetime):
     print(running)
     print("before: ", before_datetime)
     for container in running:
-        if 'penlite' not in container.attrs['Config']['Labels']:
+        if 'lawliet' not in container.attrs['Config']['Labels']:
             continue
 
         created = parser.parse(container.attrs['Created'])
@@ -39,7 +39,7 @@ def kill_old_containers(before_datetime):
             freed_ports.append(container.attrs['HostConfig']['PortBindings']['22/tcp'][0]['HostPort'])
 
     print("freed:", freed_ports)
-    conn = sqlite3.connect("penlite.db")
+    conn = sqlite3.connect("lawliet.db")
     cursor = conn.cursor()
     for port in freed_ports:
         cursor.execute('''DELETE FROM used_ports WHERE port = ?''', (port,))
@@ -49,7 +49,7 @@ def kill_old_containers(before_datetime):
 def running_container_count():
     count = 0
     for container in client.containers.list():
-        if 'penlite' in container.attrs['Config']['Labels']:
+        if 'lawliet' in container.attrs['Config']['Labels']:
             count += 1
 
     return count
@@ -97,7 +97,7 @@ def create_container():
     if running_container_count() >= MAX_CONTAINERS:
         return "maxed on containers", 503
 
-    conn = sqlite3.connect("penlite.db")
+    conn = sqlite3.connect("lawliet.db")
     curs = conn.cursor()
 
     pubkey = request.json['ssh_public_key']
@@ -110,13 +110,13 @@ def create_container():
         vnc_base_port = pick_port_db(conn, num_ports=2)[0]
 
         container = client.containers.run(
-                'penlite:test-vnc',
+                'lawliet:test-vnc',
                 """/bin/sh -c 'add-vnc-user root pass && /start.sh && echo "%s" > ~/.ssh/authorized_keys && service ssh start; /start-vnc.sh'""" % pubkey,
                 ports={
                     '22/tcp': port,
                     '5900/tcp': vnc_base_port,
                     '5901/tcp': vnc_base_port + 1},
-                labels=['penlite'],
+                labels=['lawliet'],
                 cap_add=['NET_ADMIN'],
                 sysctls={'net.ipv6.conf.all.disable_ipv6': '0'},
                 cpu_period=CPU_PERIOD,
@@ -134,10 +134,10 @@ def create_container():
 
     else:
         container = client.containers.run(
-                'penlite:test',
+                'lawliet:test',
                 """/bin/sh -c '/start.sh && echo "%s" > ~/.ssh/authorized_keys && service ssh start; /bin/bash'""" % pubkey,
                 ports={'22/tcp': port},
-                labels=['penlite'],
+                labels=['lawliet'],
                 cap_add=['NET_ADMIN'],
                 sysctls={'net.ipv6.conf.all.disable_ipv6': '0'},
                 cpu_period=CPU_PERIOD,

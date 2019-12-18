@@ -1,5 +1,5 @@
 # To run:
-# docker run -it penlite
+# docker run -it lawliet
 
 FROM kalilinux/kali-linux-docker
 

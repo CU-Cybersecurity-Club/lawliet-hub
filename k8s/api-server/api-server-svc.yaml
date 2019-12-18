@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: penlite-k8s-api-server
+  name: lawliet-k8s-api-server
   labels:
-    app: penlite-k8s-api-server
+    app: lawliet-k8s-api-server
 spec:
   ports:
   - port: 80
     targetPort: 8081
     protocol: TCP
   selector:
-    app: penlite-k8s-api-server
+    app: lawliet-k8s-api-server

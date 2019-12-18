@@ -20,12 +20,12 @@ config.load_incluster_config()
 v1 = client.CoreV1Api()
 
 def get_pod_name(name):
-    return "penlite-env-%s" % name
+    return "lawliet-env-%s" % name
 
 def get_pod_spec(name, ssh_key="", container="wshand/cutter:latest"):
     pod = client.V1Pod()
     pod.api_version = "v1"
-    labels = {"app": "penlite-env", "app-specific": get_pod_name(name)}
+    labels = {"app": "lawliet-env", "app-specific": get_pod_name(name)}
     pod.metadata = client.V1ObjectMeta(name=get_pod_name(name), labels=labels)
     ports = [
             client.V1ContainerPort(container_port=22),
@@ -54,7 +54,7 @@ def get_svc_spec(name):
     pod_name = get_pod_name(name)
     svc = client.V1Service()
 
-    labels = {"app": "penlite-env", "app-specific": pod_name}
+    labels = {"app": "lawliet-env", "app-specific": pod_name}
     svc.metadata = client.V1ObjectMeta(name=pod_name, labels=labels)
 
     svc.spec = client.V1ServiceSpec(
@@ -106,7 +106,7 @@ def cleanup_pods(alive_time=datetime.timedelta(hours=12)):
     namespace = "default"
 
     try:
-        api_response = v1.list_namespaced_pod(namespace, label_selector="app=penlite-env")
+        api_response = v1.list_namespaced_pod(namespace, label_selector="app=lawliet-env")
         pods = api_response.items
         deletion_responses = []
         for pod in pods:

@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: penlite-env-michael-test
+  name: lawliet-env-michael-test
   labels:
-    app: penlite-env
-    app-specific: penlite-env-michael-test
+    app: lawliet-env
+    app-specific: lawliet-env-michael-test
 spec:
   containers:
-  - name: penlite-env-michael-test
-    image: michaelmdresser/penlite:vnc-latest
+  - name: lawliet-env-michael-test
+    image: michaelmdresser/lawliet:vnc-latest
     command: ["/bin/bash"]
     args: ["-c", "add-vnc-user root pass && /start.sh && echo 'test' > ~/.ssh/authorized_keys && service ssh start; /start-vnc.sh; tail -f /dev/null"]
     #args: ["-c", "add-vnc-user root pass && /start.sh && echo 'test' > ~/.ssh/authorized_keys && service ssh start; /start-vnc.sh; echo 0 > /proc/sys/net/ipv6/conf/all/disable_ipv6; tail -f /dev/null"]
