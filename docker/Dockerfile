@@ -80,7 +80,10 @@ RUN /tmp/reconfigure_novnc.sh /usr/share/noVNC \
 # Change x-terminal-emulator to /usr/bin/xfce4-terminal.wrapper so that we
 # avoid "input/output error" when attempting to open a terminal in a VNC
 # session.
-RUN bash -c "update-alternatives --config x-terminal-emulator <<< 2"
+RUN rm -f /etc/alternatives/x-terminal-emulator \
+    && ln -s \
+        /usr/bin/xfce4-terminal.wrapper \
+        /etc/alternatives/x-terminal-emulator
 
 # Enable OpenVPN when the OPENVPN flag is set to one (by default it is set
 # to zero.)
