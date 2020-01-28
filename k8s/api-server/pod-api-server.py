@@ -68,7 +68,7 @@ def get_svc_spec(name):
     return svc
 
 def get_pod_status(name):
-    logging.debug("get pod status called for:", name)
+    logging.debug("get pod status called for: %s" % name)
     namespace = "default"
 
     try:
@@ -83,6 +83,12 @@ def get_pod_status(name):
             "conditions": [{"message": x.message, "reason": x.reason, "status": x.status, "type": x.type} for x in pod.status.conditions]
             })
     except client.rest.ApiException as e:
+        if '"reason":"NotFound"' in str(e):
+            return jsonify({
+                "name": name,
+                "status": "NotFound"
+                }), 404
+
         logging.error("Exception when calling CoreV1Api->read: %s\n" % e)
         return "failed to get pod status", 500
 
