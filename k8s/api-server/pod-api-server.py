@@ -67,6 +67,31 @@ def get_svc_spec(name):
 
     return svc
 
+def get_pod_status(name):
+    logging.debug("get pod status called for: %s" % name)
+    namespace = "default"
+
+    try:
+        api_response = v1.read_namespaced_pod_status(get_pod_name(name), namespace)
+        pod = api_response
+        logging.info("response for get pod status: %s" % api_response)
+
+        return jsonify({
+            "name": pod.metadata.name,
+            "created": pod.metadata.creation_timestamp,
+            "deleted": pod.metadata.deletion_timestamp,
+            "conditions": [{"message": x.message, "reason": x.reason, "status": x.status, "type": x.type} for x in pod.status.conditions]
+            })
+    except client.rest.ApiException as e:
+        if '"reason":"NotFound"' in str(e):
+            return jsonify({
+                "name": name,
+                "status": "NotFound"
+                }), 404
+
+        logging.error("Exception when calling CoreV1Api->read: %s\n" % e)
+        return "failed to get pod status", 500
+
 def create_pod(name, ssh_key=""):
     logging.debug("creating:", name)
     namespace = "default"
@@ -127,12 +152,15 @@ def cleanup_pods(alive_time=datetime.timedelta(hours=12)):
         logging.error("Exception when calling CoreV1Api->list_namespaced_pod: %s\n" % e)
         return "failed to get pods", 500
 
-@app.route('/container/<id>', methods=["PUT", "DELETE"])
+
+@app.route('/container/<id>', methods=["PUT", "DELETE", "GET"])
 def container(id):
     if request.method == "PUT":
         return create_pod(id, ssh_key=request.form.get("ssh_key", default=""))
     elif request.method == "DELETE":
         return delete_pod(id)
+    elif request.method == "GET":
+        return get_pod_status(id)
 
 @app.route('/container/cleanup', methods=["POST"])
 def container_cleanup():
