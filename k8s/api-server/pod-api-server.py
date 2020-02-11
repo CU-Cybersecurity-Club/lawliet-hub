@@ -90,7 +90,7 @@ def get_pod_status(name):
                 }), 404
 
         logging.error("Exception when calling CoreV1Api->read: %s\n" % e)
-        return "failed to get pod status", 500
+        return jsonify({"error": "failed to get pod status"}), 500
 
 def create_pod(name, ssh_key=""):
     logging.debug("creating:", name)
@@ -107,7 +107,7 @@ def create_pod(name, ssh_key=""):
             })
     except client.rest.ApiException as e:
         logging.error("Exception when calling CoreV1Api->create: %s\n" % e)
-        return "failed to create pod", 500
+        return jsonify({"error": "failed to create pod"}), 500
 
 def delete_pod(name, literal_name=False):
     logging.debug("deleting: %s" % name)
@@ -122,10 +122,10 @@ def delete_pod(name, literal_name=False):
         logging.debug("response for delete pod %s: %s" % (name, api_response))
         api_response = v1.delete_namespaced_service(pod_name, namespace, pretty=pretty)
         logging.debug("response for delete svc %s: %s" % (name, api_response))
-        return "", 200
+        return jsonify({"status": "success"}), 200
     except client.rest.ApiException as e:
         logging.error("Exception when calling CoreV1Api->delete: %s\n" % e)
-        return "failed to delete pod", 500
+        return jsonify({"error": "failed to delete pod"}), 500
 
 def cleanup_pods(alive_time=datetime.timedelta(hours=12)):
     namespace = "default"
@@ -147,10 +147,10 @@ def cleanup_pods(alive_time=datetime.timedelta(hours=12)):
         for re in deletion_responses:
             if re[1] != 200:
                 return "cleanup deletion failed for at least one pod", 500
-        return "", 200
+        return jsonify({"status": "success"}), 200
     except client.rest.ApiException as e:
         logging.error("Exception when calling CoreV1Api->list_namespaced_pod: %s\n" % e)
-        return "failed to get pods", 500
+        return jsonify({"error": "failed to get pods"}), 500
 
 
 @app.route('/container/<id>', methods=["PUT", "DELETE", "GET"])
