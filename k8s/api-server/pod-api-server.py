@@ -146,7 +146,7 @@ def cleanup_pods(alive_time=datetime.timedelta(hours=12)):
         logging.debug("cleanup deletion responses: %s" % deletion_responses)
         for re in deletion_responses:
             if re[1] != 200:
-                return "cleanup deletion failed for at least one pod", 500
+                return jsonify({"error": "cleanup deletion failed for at least one pod"}), 500
         return jsonify({"status": "success"}), 200
     except client.rest.ApiException as e:
         logging.error("Exception when calling CoreV1Api->list_namespaced_pod: %s\n" % e)

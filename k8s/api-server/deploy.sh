@@ -2,8 +2,6 @@
 
 set -e
 
-./build_and_upload_image.sh
-
 kubectl apply -f api-server-serviceaccount.yaml
 kubectl apply -f api-server-role.yaml
 kubectl apply -f api-server-role-binding.yaml
