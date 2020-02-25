@@ -48,6 +48,8 @@ apk add curl
 
 You should now be able to `curl` the service by name: `curl lawliet-k8s-api-server`
 
+## API Documentation
+
 **Create Environment**
 ----
 
@@ -211,7 +213,9 @@ Deletes all environments older than a specified amount of time.
 
   * **Code:** 500  
     **Content:**   
-	```{ "error" : "cleanup deletion failed for at least one pod" }```  
+	```
+	{ "error" : "cleanup deletion failed for at least one pod" }
+	```  
 	OR  
     **Content:** `{ "error" : "failed to get pods" }`
 
@@ -222,3 +226,35 @@ Deletes all environments older than a specified amount of time.
 		--data-urlencode "minutes_alive=720"
   ```
 
+
+## Links and Notes from Development
+
+### Why is IPv6 necessary? The Hack the Box VPN requires IPv6
+[HTB Forum Post](https://forum.hackthebox.eu/discussion/385/fatal-error)
+
+#### Containers
+Docker containers must have IPv6 un-disabled (it is disabled by default) in order to run an IPv6 VPN. This is done by editing a sysctl, specifically `net.ipv6.conf.all.disable_ipv6`. Additionally, the container must have `NET_ADMIN` capability in order to open a tunnel. Additionally, containers must have the file `/dev/net/tun` in order to open a tunnel, which can be created (if it doesn't exist) by with the following commands:
+```
+mkdir -p /dev/net
+mknod /dev/net/tun c 10 200
+chmod 0666 /dev/net/tun
+```
+* [Docker and IPv6](https://docs.docker.com/v17.09/engine/userguide/networking/default_network/ipv6/#how-ipv6-works-on-docker)
+* [OpenVPN and IPv6 in containers](https://github.com/dperson/openvpn-client/issues/75)
+* [/dev/net/tun explanation Reddit post #1](https://www.reddit.com/r/docker/comments/bog7gy/help_with_error_cannot_open_tuntap_dev_devnettun/)
+* [/dev/net/tun explanation Reddit post #2](https://www.reddit.com/r/docker/comments/4cw758/accessing_tuntap_device_inside_of_a_docker/)
+* [/dev/net/tun creation issue](https://github.com/haugene/docker-transmission-openvpn/issues/538)
+* [/dev/net/tun creation code](https://github.com/haugene/docker-transmission-openvpn/blob/dev/openvpn/start.sh#L8)
+
+#### Docker Daemon (only if non-Kubernetes)
+If running the non-Kubernetes deployment (pure Docker), the Docker daemon must also have [IPv6 enabled](https://docs.docker.com/config/daemon/ipv6/).
+
+### Security Concerns
+I think that because the network is in bridge mode, there shouldn't (?) be a vuln, though this may require creating networks for every container? DONT RUN IN HOST NETWORK MODE otherwise definitely a vuln
+
+Various resources for understanding container and Kubernetes security better -- particularly relevant considering that we're trying to give everyone unfettered access to their own container with all the pentesting tools they could want :)
+
+    https://blog.trailofbits.com/2019/07/19/understanding-docker-container-escapes/
+    https://github.com/IanColdwater/kubernetes-security-best-practice
+    https://www.cyberark.com/threat-research-blog/the-route-to-root-container-escape-using-kernel-exploitation/
+    https://www.cyberark.com/threat-research-blog/how-i-hacked-play-with-docker-and-remotely-ran-code-on-the-host/
