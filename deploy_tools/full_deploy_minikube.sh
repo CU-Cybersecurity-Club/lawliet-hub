@@ -20,4 +20,4 @@ echo "done editing kubelet on minikube"
 ### Deploy services to Minikube
 ###
 
-$(SCRIPT_DIR)/deploy.sh
+${SCRIPT_DIR}/deploy.sh

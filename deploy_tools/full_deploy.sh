@@ -20,4 +20,4 @@ done
 ### Deploy to Google Cloud
 ###
 
-$(SCRIPT_DIR)/deploy.sh
+${SCRIPT_DIR}/deploy.sh
