@@ -1,2 +1,13 @@
 /lawliet.db
 *.tar.gz
+
+# Python residuals
+__pycache__
+*.pyc
+
+# Virtual environments
+virtualenv
+venv
+
+# Log files
+*.log
