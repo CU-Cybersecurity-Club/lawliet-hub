@@ -4,13 +4,13 @@ RUN apk update && \
     apk upgrade && \
     apk add --no-cache python3
 
+# Install Python dependencies
+COPY requirements.txt /tmp
 RUN python3 -m pip install \
         --no-cache-dir \
-        flask \
-        kubernetes \
-        requests
+        -r /tmp/requirements.txt
 
-COPY src/pod-api-server.py .
+ADD src/ .
 
 ENV PYTHONUNBUFFERED=0
-ENTRYPOINT ["/usr/bin/python3", "-u", "pod-api-server.py"]
+ENTRYPOINT ["/usr/bin/python3", "-u", "app.py"]

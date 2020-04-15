@@ -13,6 +13,8 @@ DEBUG = True
 FLASK_ENV = "development"
 SECRET_KEY = uuid.uuid4().hex
 
+VERSION = "v0.0.0"
+
 """
 Logging configuration
 """

@@ -2,12 +2,11 @@ version: "3"
 
 services:
 
-  api-server:
+  lawliet-hub:
     build:
       context: .
-      dockerfile: docker/api-server/Dockerfile
-    image: lawliet-k8s-api-server:latest
-    container_name: lawliet-k8s-api
+      dockerfile: docker/hub/Dockerfile
+    image: lawliet-hub:latest
 
   vnc:
     build:

@@ -17,7 +17,7 @@ spec:
       serviceAccountName: "lawliet-k8s-api-server"
       containers:
       - name: lawliet-k8s-api-server
-        image: michaelmdresser/lawliet:k8s-api-server-latest
+        image: wshand/lawliet-hub:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8081
