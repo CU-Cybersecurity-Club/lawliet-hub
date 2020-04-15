@@ -4,7 +4,8 @@ Views related to getting the status of the server itself.
 
 import datetime
 import settings
-from flask import jsonify
+from flask import jsonify, request
+import logging
 
 
 def index():

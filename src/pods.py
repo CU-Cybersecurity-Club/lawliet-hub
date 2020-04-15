@@ -1,14 +1,15 @@
-from pprint import pprint
-import logging
-import datetime
-
 from flask import Flask, request, jsonify
-import requests
-
 from kubernetes import client, config
+from pprint import pprint
+from typing import Optional, List
 
+import datetime
+import json
+import logging
+import requests
+import traceback
 
-logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger("kubernetes")
 
 # for local testing with LOCAL kubectl set up for the cluster
 # config.load_kube_config()
@@ -19,22 +20,27 @@ config.load_incluster_config()
 v1 = client.CoreV1Api()
 
 
-def get_pod_name(name):
-    return "lawliet-env-%s" % name
+def get_pod_name(id):
+    """
+    Return the internal hostname for a pod with a given id.
+    """
+    return f"lawliet-env-{id}"
 
 
-def get_pod_spec(name, ssh_key="", container="wshand/cutter:latest"):
+def get_pod_spec(
+    id: str, image: str, ports: List[int], ssh_key: Optional[str] = None,
+):
     pod = client.V1Pod()
     pod.api_version = "v1"
-    labels = {"app": "lawliet-env", "app-specific": get_pod_name(name)}
-    pod.metadata = client.V1ObjectMeta(name=get_pod_name(name), labels=labels)
-    ports = [
-        client.V1ContainerPort(container_port=22),
-        client.V1ContainerPort(container_port=6080),
-    ]
+    pod_name = get_pod_name(id)
+
+    labels = {"app": "lawliet-env", "app-specific": pod_name}
+    pod.metadata = client.V1ObjectMeta(name=pod_name, labels=labels)
+    ports = [client.V1ContainerPort(container_port=port) for port in ports]
+
     container = client.V1Container(
-        name=get_pod_name(name),
-        image=container,
+        name=pod_name,
+        image=image,
         image_pull_policy="Always",
         # command=["/bin/bash"],
         # args=["-c", "echo '%s' > ~/.ssh/authorized_keys && service ssh start; mkdir -p /dev/net && mknod /dev/net/tun c 10 200 && chmod 0666 /dev/net/tun; /start.sh" % ssh_key],
@@ -53,8 +59,8 @@ def get_pod_spec(name, ssh_key="", container="wshand/cutter:latest"):
     return pod
 
 
-def get_svc_spec(name):
-    pod_name = get_pod_name(name)
+def get_svc_spec(id):
+    pod_name = get_pod_name(id)
     svc = client.V1Service()
 
     labels = {"app": "lawliet-env", "app-specific": pod_name}
@@ -77,14 +83,18 @@ def get_svc_spec(name):
     return svc
 
 
-def get_pod_status(name):
-    logging.debug("get pod status called for: %s" % name)
+def get_pod_status(id):
+    """
+    Retrieve the status of a pod from Kubernetes
+    """
+
+    logger.info(f"Retrieving pod status for pod {id}")
     namespace = "default"
 
     try:
-        api_response = v1.read_namespaced_pod_status(get_pod_name(name), namespace)
+        api_response = v1.read_namespaced_pod_status(get_pod_name(id), namespace)
         pod = api_response
-        logging.info("response for get pod status: %s" % api_response)
+        logger.debug(f"Retrieved status for pod {id}: {api_response}")
 
         return jsonify(
             {
@@ -93,58 +103,75 @@ def get_pod_status(name):
                 "deleted": pod.metadata.deletion_timestamp,
                 "conditions": [
                     {
-                        "message": x.message,
-                        "reason": x.reason,
-                        "status": x.status,
-                        "type": x.type,
+                        "message": cond.message,
+                        "reason": cond.reason,
+                        "status": cond.status,
+                        "type": cond.type,
                     }
-                    for x in pod.status.conditions
+                    for cond in pod.status.conditions
                 ],
             }
         )
-    except client.rest.ApiException as e:
-        if '"reason":"NotFound"' in str(e):
-            return jsonify({"name": name, "status": "NotFound"}), 404
 
-        logging.error("Exception when calling CoreV1Api->read: %s\n" % e)
+    except client.rest.ApiException as ex:
+        if '"reason":"NotFound"' in str(ex):
+            logger.debug(f"Retrieve status for pod {id} failed: pod not found")
+            return jsonify({"id": id, "status": "NotFound"}), 404
+
+        logger.error(f"Exception when calling CoreV1Api->read: {ex}")
         return jsonify({"error": "failed to get pod status"}), 500
 
 
-def create_pod(name, ssh_key=""):
-    logging.debug("creating:", name)
+def create_pod(id, image: str, ports: List[int], ssh_key: Optional[str] = None):
+    """
+    Create a new pod using a container image.
+    """
+
+    logger.info(f"Creating new pod {id}")
     namespace = "default"
-    body = get_pod_spec(name, ssh_key=ssh_key)
+
+    body = get_pod_spec(id, image, ports, ssh_key=ssh_key)
     pretty = "true"
+
     try:
         api_response = v1.create_namespaced_pod(namespace, body, pretty=pretty)
-        logging.debug("response for create pod %s: %s" % (name, api_response))
+        logger.debug(f"Response for create pod {id}: {api_response}")
         api_response = v1.create_namespaced_service(
-            namespace, get_svc_spec(name), pretty=pretty
+            namespace, get_svc_spec(id), pretty=pretty
         )
-        logging.debug("response for create svc %s: %s" % (name, api_response))
-        return jsonify({"pod_name": get_pod_name(name)})
-    except client.rest.ApiException as e:
-        logging.error("Exception when calling CoreV1Api->create: %s\n" % e)
+        logger.debug(f"Response for create service {id}: {api_response}")
+
+        pod_name = get_pod_name(id)
+        logger.info(f"Created new pod with id {id!r} (pod name: {pod_name!r})")
+
+        return jsonify({"id": id, "image": image, "pod_name": pod_name})
+
+    except client.rest.ApiException as ex:
+        logger.error(f"Exception when calling CoreV1Api->create: {ex}")
+        logger.debug(f"\n{traceback.format_exc()}")
         return jsonify({"error": "failed to create pod"}), 500
 
 
-def delete_pod(name, literal_name=False):
-    logging.debug("deleting: %s" % name)
+def delete_pod(id, literal_name=False):
+    logger.info(f"Deleting pod {id}")
     namespace = "default"
+
     if literal_name:
-        pod_name = name
+        pod_name = id
     else:
-        pod_name = get_pod_name(name)
+        pod_name = get_pod_name(id)
     pretty = "true"
+
     try:
         api_response = v1.delete_namespaced_pod(pod_name, namespace, pretty=pretty)
-        logging.debug("response for delete pod %s: %s" % (name, api_response))
+        logging.debug(f"Response for delete pod {id}: {api_response}")
         api_response = v1.delete_namespaced_service(pod_name, namespace, pretty=pretty)
-        logging.debug("response for delete svc %s: %s" % (name, api_response))
+        logger.debug(f"Response for delete service {id}: {api_response}")
         return jsonify({"status": "success"}), 200
-    except client.rest.ApiException as e:
-        logging.error("Exception when calling CoreV1Api->delete: %s\n" % e)
-        return jsonify({"error": "failed to delete pod"}), 500
+
+    except client.rest.ApiException as ex:
+        logger.error("Exception when calling CoreV1Api->delete: {ex}")
+        return jsonify({"error": "Failed to delete pod"}), 500
 
 
 def cleanup_pods(alive_time=datetime.timedelta(hours=12)):
@@ -158,23 +185,19 @@ def cleanup_pods(alive_time=datetime.timedelta(hours=12)):
         deletion_responses = []
         for pod in pods:
             created = pod.metadata.creation_timestamp
-            logging.debug("pod: %s" % pod.metadata.name)
-            logging.debug(
-                "created: %s" % pod.metadata.creation_timestamp.isoformat("T")
-            )
-            logging.debug(
-                "+alive: %s"
-                % (pod.metadata.creation_timestamp + alive_time).isoformat("T")
-            )
-            logging.debug(
-                "vs: %s" % datetime.datetime.now(created.tzinfo).isoformat("T")
-            )
+            current = datetime.datetime.now(created.tzinfo)
+
+            logger.debug(f"Pod: {pod.metadata.name}")
+            logger.debug(f"Created: {created.isoformat('T')}")
+            logger.debug(f"+alive: {(created + alive_time).isoformat('T')}")
+            logger.debug(f"vs: {current.isoformat('T')}")
+
             if created + alive_time < datetime.datetime.now(created.tzinfo):
                 deletion_responses.append(
                     delete_pod(pod.metadata.name, literal_name=True)
                 )
 
-        logging.debug("cleanup deletion responses: %s" % deletion_responses)
+        logger.debug(f"Cleanup deletion responses: {deletion_responses}")
         for re in deletion_responses:
             if re[1] != 200:
                 return (
@@ -182,6 +205,7 @@ def cleanup_pods(alive_time=datetime.timedelta(hours=12)):
                     500,
                 )
         return jsonify({"status": "success"}), 200
-    except client.rest.ApiException as e:
-        logging.error("Exception when calling CoreV1Api->list_namespaced_pod: %s\n" % e)
+
+    except client.rest.ApiException as ex:
+        logger.error(f"Exception when calling CoreV1Api->list_namespaced_pod: {ex}")
         return jsonify({"error": "failed to get pods"}), 500

@@ -3,33 +3,76 @@ API endpoints related to accessing Kubernetes for creating pods, deleting pods,
 get pod status, etc.
 """
 
-from pods import create_pod, delete_pod, get_pod_status, cleanup_pods
-from flask import Blueprint, jsonify
+import datetime
+import logging
+import pods
+from flask import Blueprint, jsonify, request
+from flask.views import MethodView
 
-"""
-Flask Blueprint within which to register all of the views
-"""
-
-kube_views = Blueprint("kube", __name__, url_prefix="/container")
+logger = logging.getLogger("kubernetes")
 
 """
 View definitions
 """
 
 
-@kube_views.route("/<id>", methods=["PUT", "DELETE", "GET"])
-def container(id):
-    if request.method == "PUT":
-        return create_pod(id, ssh_key=request.form.get("ssh_key", default=""))
-    elif request.method == "DELETE":
-        return delete_pod(id)
-    elif request.method == "GET":
-        return get_pod_status(id)
+class PodManipulationAPI(MethodView):
+    """
+    Defines an endpoint that takes a pod id and can create, delete,
+    or get the status of a pod with that id.
+    """
+
+    def get(self, id):
+        """
+        Retrieve a pod's status
+        """
+        return pods.get_pod_status(id)
+
+    def put(self, id):
+        """
+        Create a new pod
+        """
+        data = request.get_json()
+        err = None
+
+        if not data:
+            err = "Data should be JSON-formatted"
+
+        image = data.get("image", None)
+        ports = data.get("ports", None)
+        if not image or not ports:
+            err = "Data should be a JSON object with the keys 'image' " "and 'ports'"
+
+        if err is not None:
+            return jsonify({"err": err}), 422
+
+        return pods.create_pod(id, image, ports, ssh_key=request.form.get("ssh_key"))
+
+    def delete(self, id):
+        """
+        Delete an existing pod
+        """
+        return pods.delete_pod(id)
 
 
-@kube_views.route("/cleanup", methods=["POST"])
 def container_cleanup():
     if request.method == "POST":
         minutes_alive = request.form.get("minutes_alive", default="720")
         time_alive = datetime.timedelta(minutes=int(minutes_alive))
-        return cleanup_pods(alive_time=time_alive)
+        return pods.cleanup_pods(alive_time=time_alive)
+
+
+"""
+Flask Blueprint to bundle all of the views together
+"""
+
+kube_views = Blueprint("kube", __name__, url_prefix="/")
+
+kube_views.add_url_rule(
+    "/pods/<id>",
+    endpoint="pod manipulation",
+    view_func=PodManipulationAPI.as_view("pod manipulation"),
+)
+kube_views.add_url_rule(
+    "/cleanup", endpoint="cleanup", view_func=container_cleanup, methods=["POST"]
+)
