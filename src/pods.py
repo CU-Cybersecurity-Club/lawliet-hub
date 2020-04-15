@@ -209,3 +209,27 @@ def cleanup_pods(alive_time=datetime.timedelta(hours=12)):
     except client.rest.ApiException as ex:
         logger.error(f"Exception when calling CoreV1Api->list_namespaced_pod: {ex}")
         return jsonify({"error": "failed to get pods"}), 500
+
+
+def purge_pods():
+    """
+    Remove all pods from the system.
+    """
+
+    namespace = "default"
+
+    try:
+        api_response = v1.list_namespaced_pod(
+            namespace, label_selector="app=lawliet-env"
+        )
+        pods = api_response.items
+        deletion_responses = []
+        for pod in pods:
+            delete_pod(pod.metadata.name, literal_name=True)
+
+        logger.info(f"Deleted {len(pods)} pods")
+        return jsonify({"status": "success"}), 200
+
+    except client.rest.ApiException as ex:
+        logger.error(f"Exception when calling CoreV1Api->list_namespaced_pod: {ex}")
+        return jsonify({"error": "failed to get pods"}), 500

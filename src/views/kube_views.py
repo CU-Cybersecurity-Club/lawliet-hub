@@ -56,10 +56,16 @@ class PodManipulationAPI(MethodView):
 
 
 def container_cleanup():
-    if request.method == "POST":
-        minutes_alive = request.form.get("minutes_alive", default="720")
-        time_alive = datetime.timedelta(minutes=int(minutes_alive))
-        return pods.cleanup_pods(alive_time=time_alive)
+    minutes_alive = request.form.get("minutes_alive", default="720")
+    time_alive = datetime.timedelta(minutes=int(minutes_alive))
+    return pods.cleanup_pods(alive_time=time_alive)
+
+
+def purge_pods():
+    """
+    An endpoint that can be used to purge all running lab environment pods.
+    """
+    return pods.purge_pods()
 
 
 """
@@ -75,4 +81,7 @@ kube_views.add_url_rule(
 )
 kube_views.add_url_rule(
     "/cleanup", endpoint="cleanup", view_func=container_cleanup, methods=["POST"]
+)
+kube_views.add_url_rule(
+    "/purge", endpoint="purge", view_func=purge_pods, methods=["POST"]
 )
