@@ -1,0 +1,15 @@
+version: "3"
+
+services:
+
+  api-server:
+    build:
+      context: .
+      dockerfile: docker/api-server/Dockerfile
+    image: lawliet-k8s-api-server:latest
+    container_name: lawliet-k8s-api
+
+  vnc:
+    build:
+      context: docker/vnc
+    image: lawliet-test-vnc:latest
