@@ -17,6 +17,12 @@ minikube ssh "sudo systemctl restart kubelet"
 echo "done editing kubelet on minikube"
 
 ###
+### Build and upload the latest container image
+###
+
+${SCRIPT_DIR}/build.sh
+
+###
 ### Deploy services to Minikube
 ###
 
