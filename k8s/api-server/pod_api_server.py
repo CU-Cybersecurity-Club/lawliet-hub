@@ -67,21 +67,41 @@ def get_svc_spec(name):
 
     return svc
 
+def construct_status_response(api_response):
+    pod = api_response
+
+    if pod.metadata is None:
+        return jsonify({
+            "name": name,
+            "status": "metadata is None, try again"
+            }), 500
+    elif pod.status is None:
+        return jsonify({
+            "name": name,
+            "status": "status is None, try again"
+            }), 500
+    elif pod.status.conditions is None:
+        return jsonify({
+            "name": name,
+            "status": "status.conditions is None, try again"
+            }), 500
+
+    return jsonify({
+        "name": pod.metadata.name,
+        "created": pod.metadata.creation_timestamp,
+        "deleted": pod.metadata.deletion_timestamp,
+        "conditions": [{"message": x.message, "reason": x.reason, "status": x.status, "type": x.type} for x in pod.status.conditions]
+        })
+
+
 def get_pod_status(name):
     logging.debug("get pod status called for: %s" % name)
     namespace = "default"
 
     try:
         api_response = v1.read_namespaced_pod_status(get_pod_name(name), namespace)
-        pod = api_response
         logging.info("response for get pod status: %s" % api_response)
-
-        return jsonify({
-            "name": pod.metadata.name,
-            "created": pod.metadata.creation_timestamp,
-            "deleted": pod.metadata.deletion_timestamp,
-            "conditions": [{"message": x.message, "reason": x.reason, "status": x.status, "type": x.type} for x in pod.status.conditions]
-            })
+        return construct_status_response(api_response)
     except client.rest.ApiException as e:
         if '"reason":"NotFound"' in str(e):
             return jsonify({
