@@ -5,7 +5,7 @@ RUN apk update && \
 
 RUN pip3 install flask kubernetes requests
 
-COPY ./pod-api-server.py .
+COPY ./pod_api_server.py .
 
 ENV PYTHONUNBUFFERED=0
-ENTRYPOINT ["/usr/bin/python3", "-u", "pod-api-server.py"]
+ENTRYPOINT ["/usr/bin/python3", "-u", "pod_api_server.py"]
